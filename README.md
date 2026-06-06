@@ -70,7 +70,7 @@ flowchart LR
 | Generation | OpenCode, sandbox runner | Creates and builds generated internal tools |
 | App backend | InsForge | Per-tool data tables for generated apps |
 | Integrations | Composio | Gmail, Slack, Stripe, and other workflow actions |
-| Sponsor hooks | Replicas, Devin, Memoir, Limrun | Optional backend API handoffs with simulated fallback |
+| Sponsor hooks | Replicas, Cognition / Devin, Memoir, Limrun | Review, launch, and mobile QA workflows that extend the generated-tool lifecycle |
 | Deployment | Railway | Public deployment target for approved tools |
 
 ```mermaid
@@ -91,8 +91,19 @@ flowchart TD
     App["Generated Vite App"]
     InsForge["InsForge Tables"]
     Composio["Composio Actions"]
-    Sponsors["Sponsor Hooks"]
     Railway["Railway Deploy"]
+  end
+
+  subgraph SponsorLayer["Sponsor Integrations"]
+    SponsorOrchestrator["Sponsor Orchestrator"]
+    Replicas["Replicas Background Agent"]
+    Devin["Cognition / Devin Review"]
+    Memoir["Memoir Launch Packet"]
+    Limrun["Limrun Mobile QA"]
+    SponsorArtifacts["Artifacts + Status"]
+    ReviewApproval["Review + Approval"]
+    ToolLogs["Tool Logs"]
+    DeployReadiness["Deploy Readiness"]
   end
 
   Web --> API
@@ -106,8 +117,19 @@ flowchart TD
   App --> InsForge
   App --> API
   API --> Composio
-  API --> Sponsors
   App --> Railway
+  API -->|"Tool context + build plan + preview URL + change summary"| SponsorOrchestrator
+  SponsorOrchestrator --> Replicas
+  SponsorOrchestrator --> Devin
+  SponsorOrchestrator --> Memoir
+  SponsorOrchestrator --> Limrun
+  Replicas --> SponsorArtifacts
+  Devin --> SponsorArtifacts
+  Memoir --> SponsorArtifacts
+  Limrun --> SponsorArtifacts
+  SponsorArtifacts --> ReviewApproval
+  SponsorArtifacts --> ToolLogs
+  SponsorArtifacts --> DeployReadiness
 ```
 
 ## What It Proves
@@ -118,7 +140,7 @@ flowchart TD
 | Can the system produce a real build plan? | Yes, pages, data models, integrations, workflows, and risks are structured before generation. |
 | Can generated apps use a real backend? | Yes, generated tools are backed by InsForge tables. |
 | Can high-risk actions stay safe in demo mode? | Yes, refunds, emails, and notifications are routed through reviewable action flows. |
-| Can sponsor APIs be claimed without blocking the demo? | Yes, sponsor hooks run live when configured and otherwise persist simulated workflow runs. |
+| Can sponsor integrations extend the generated-tool lifecycle? | Yes, ForgeIt routes build plans, previews, changes, and approval context through sponsor-backed review, launch, and QA workflows. |
 
 ## Sponsor Integrations
 
@@ -130,9 +152,9 @@ ForgeIt is built around the hackathon sponsor stack: a user connects their compa
 | Replicas | Background coding-agent review | ForgeIt can hand off a generated tool or change summary to Replicas for background engineering follow-up after the first build. |
 | Cognition / Devin | Engineering review session | ForgeIt can send generated plan and change context to Devin for a review focused on safety, backend usage, demo-safe actions, and missing tests. |
 | Memoir | Launch packet for generated tools | ForgeIt turns each generated tool into a product and launch brief using the same context shown in the build plan, preview, and change review flow. |
-| Limrun | Mobile preview handoff | ForgeIt records a mobile-preview handoff for tools that need approval or operator workflows tested beyond the desktop preview. |
+| Limrun | Mobile QA workflow | ForgeIt routes approval-heavy operator workflows into mobile QA so teams can review how generated tools behave beyond the desktop preview. |
 
-`GET /api/health` shows whether each sponsor integration is running live or in simulated mode. Sponsor workflow runs are saved in tool logs so judges can see the integrations even when credentials are not configured.
+Sponsor integration runs appear in tool activity logs so reviewers can see the review, launch, and QA steps attached to each generated internal tool.
 
 ## Notes
 
