@@ -1,0 +1,168 @@
+// ForgeIt control-plane metadata DB. SQLite for the hackathon (Postgres = swap
+// the datasource). JSON-ish columns are stored as String and (de)serialized in code.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  members   WorkspaceMember[]
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  ownerId   String?
+  teamSize  String?
+  primaryTeam String?
+  createdAt DateTime @default(now())
+  members   WorkspaceMember[]
+  apps      ConnectedApp[]
+  tools     InternalTool[]
+}
+
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String   @default("owner") // owner|admin|builder|reviewer|viewer
+  department  String?
+  createdAt   DateTime @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model ConnectedApp {
+  id                  String   @id @default(cuid())
+  workspaceId         String
+  provider            String
+  composioConnectionId String?
+  status              String   @default("connected") // connected|pending|error|disconnected
+  scopes              String?  // JSON
+  metadata            String?  // JSON
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  workspace           Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model InternalTool {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  name            String
+  slug            String
+  description     String?
+  status          String   @default("draft")
+  department      String?
+  ownerName       String?
+  previewUrl      String?
+  productionUrl   String?
+  tags            String?  // JSON array
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  workspace       Workspace @relation(fields: [workspaceId], references: [id])
+  prompts         BuildPrompt[]
+  plans           BuildPlanRow[]
+  jobs            BuildJob[]
+  changes         Change[]
+  deployments     Deployment[]
+  workflowRuns    WorkflowRun[]
+}
+
+model BuildPrompt {
+  id              String   @id @default(cuid())
+  toolId          String
+  rawPrompt       String
+  selectedApps    String?  // JSON
+  department      String?
+  appType         String?
+  createdAt       DateTime @default(now())
+  tool            InternalTool @relation(fields: [toolId], references: [id])
+}
+
+model BuildPlanRow {
+  id          String   @id @default(cuid())
+  toolId      String
+  promptId    String?
+  planJson    String   // JSON BuildPlan
+  tableMap    String?  // JSON entity->table
+  status      String   @default("draft") // draft|approved|rejected|superseded
+  createdAt   DateTime @default(now())
+  approvedAt  DateTime?
+  tool        InternalTool @relation(fields: [toolId], references: [id])
+}
+
+model BuildJob {
+  id          String   @id @default(cuid())
+  toolId      String
+  planId      String?
+  kind        String   @default("build") // build|edit
+  status      String   @default("queued")
+  currentStep String?
+  errorMessage String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  tool        InternalTool @relation(fields: [toolId], references: [id])
+  logs        BuildLog[]
+}
+
+model BuildLog {
+  id        String   @id @default(cuid())
+  jobId     String
+  level     String   @default("info")
+  message   String
+  step      String?
+  createdAt DateTime @default(now())
+  job       BuildJob @relation(fields: [jobId], references: [id])
+}
+
+model Change {
+  id          String   @id @default(cuid())
+  toolId      String
+  title       String
+  summary     String?
+  requestedBy String?
+  status      String   @default("ready_for_review")
+  whatChanged String?  // JSON array of strings
+  createdAt   DateTime @default(now())
+  approvedAt  DateTime?
+  tool        InternalTool @relation(fields: [toolId], references: [id])
+}
+
+model Deployment {
+  id          String   @id @default(cuid())
+  toolId      String
+  environment String   @default("preview") // preview|production
+  status      String   @default("queued")
+  url         String?
+  version     String?
+  logs        String?
+  createdAt   DateTime @default(now())
+  deployedAt  DateTime?
+  tool        InternalTool @relation(fields: [toolId], references: [id])
+}
+
+model WorkflowRun {
+  id           String   @id @default(cuid())
+  toolId       String
+  workflowName String
+  slug         String?
+  status       String   @default("succeeded")
+  simulated    Boolean  @default(true)
+  input        String?  // JSON
+  output       String?  // JSON
+  error        String?
+  createdAt    DateTime @default(now())
+  tool         InternalTool @relation(fields: [toolId], references: [id])
+}
