@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "tsBuildInfoFile": "./node_modules/.cache/forgeit/root.tsbuildinfo",
+    "paths": {
+      "@/*": ["apps/web/src/*"],
+      "@forgeit/shared": ["packages/shared/src/index.ts"],
+      "@forgeit/shared/*": ["packages/shared/src/*"],
+      "@forgeit/services": ["packages/services/src/index.ts"],
+      "@forgeit/services/*": ["packages/services/src/*"],
+      "@forgeit/runner": ["packages/runner/src/index.ts"],
+      "@forgeit/runner/*": ["packages/runner/src/*"]
+    }
+  },
+  "include": [
+    "apps/server/src/**/*.ts",
+    "apps/web/src/**/*.ts",
+    "apps/web/src/**/*.tsx",
+    "apps/web/vite.config.ts",
+    "packages/*/src/**/*.ts",
+    "templates/base-app/src/**/*.ts",
+    "templates/base-app/src/**/*.tsx",
+    "templates/base-app/vite.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", "generated"]
+}
