@@ -1,0 +1,5 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+# templates/base-app is intentionally NOT a workspace member — the runner installs
+# its deps fresh inside each generated sandbox (clean npm node_modules).
