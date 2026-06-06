@@ -1,15 +1,15 @@
 # ForgeIt
 
 <p align="center">
-  <strong>Build internal tools by describing them.</strong>
+  <img src="docs/assets/brand/forgeit-wordmark.png" alt="ForgeIt" width="300">
 </p>
 
 <p align="center">
-  Connect your stack, describe a workflow in plain English, and ForgeIt ships the dashboard, backend, automations, preview, and deployment flow.
+  <strong>Lovable for internal tools.</strong>
 </p>
 
 <p align="center">
-  <img alt="ForgeIt landing page" src="docs/assets/screenshots/landing.png" width="900">
+  ForgeIt turns a plain-English workflow into a planned, generated, previewable internal tool with real backend tables and integration-aware automations.
 </p>
 
 <p align="center">
@@ -20,150 +20,111 @@
   <img alt="Railway" src="https://img.shields.io/badge/Railway-Deploy-0B0D0E?style=for-the-badge&logo=railway&logoColor=white">
 </p>
 
-ForgeIt is a hackathon-built platform for generating real internal tools from a business prompt. The control plane turns a request into a build plan, provisions backend tables, asks OpenCode and MiniMax to generate a Vite app, serves a live preview, and can deploy the result to Railway.
+## First User
+
+<table>
+  <tr>
+    <td align="center" width="100%">
+      <a href="https://www.pleasurepizzasc.com/pleasure-point/menus/">
+        <img src="docs/assets/customers/pleasure-pizza-logo.png" alt="Pleasure Pizza" width="112">
+      </a>
+      <br>
+      <strong>Pleasure Pizza</strong>
+      <br>
+      Early customer validation for ForgeIt's first operations workflow: a refund request dashboard for a real pizza shop team.
+    </td>
+  </tr>
+</table>
 
 ## Product
+
+<p align="center">
+  <img alt="ForgeIt landing page" src="docs/assets/screenshots/landing.png" width="900">
+</p>
 
 <p align="center">
   <img alt="ForgeIt tools gallery" src="docs/assets/screenshots/tools-gallery.png" width="420">
   <img alt="ForgeIt forge flow" src="docs/assets/screenshots/forge-flow.png" width="420">
 </p>
 
-The first demo use case is a refund request dashboard for a pizza shop: pull refund emails from Gmail, match them to Stripe payments, let managers approve or reject requests, and notify Slack when a refund needs review.
+ForgeIt starts where internal-tool requests usually start: a messy business workflow. It discovers the shape of the tool, drafts the plan, generates the app, provisions the backend, streams build progress, and gives the team a preview before anything goes live.
 
-ForgeIt supports a demo-safe mode for high-risk actions, so teams can test workflows without sending live refunds, emails, or production notifications.
+## First Workflow
+
+| Step | Pizza shop refund workflow | ForgeIt output |
+| --- | --- | --- |
+| Request | "Build a refund dashboard for my pizza shop." | Normalized app intent and selected workflow type |
+| Connect | Gmail, Stripe, Slack | Integration-aware build plan |
+| Model | Refund requests, customers, payments, approvals | InsForge-backed tables |
+| Build | Dashboard, queue, detail view, manager actions | Generated Vite app |
+| Review | High-risk refund and notification actions | Demo-safe approvals and audit trail |
+
+```mermaid
+flowchart LR
+  Prompt["Plain-English request"] --> Plan["MiniMax build plan"]
+  Plan --> Data["InsForge tables"]
+  Plan --> Build["OpenCode app generation"]
+  Data --> Preview["Live preview"]
+  Build --> Preview
+  Preview --> Deploy["Railway deploy"]
+```
 
 ## Architecture
 
-```text
-apps/web             Vite + React + Tailwind control-plane UI
-apps/server          Fastify API, Prisma SQLite store, queue, SSE events
-packages/shared      BuildPlan schema, enums, risk helpers, event types
-packages/services    MiniMax, InsForge, Composio, and Railway clients
-packages/runner      OpenCode sandbox runner, preview server, prompt builder
-templates/base-app   Starter Vite app extended for generated tools
-generated/.gitkeep   Runtime sandbox directory placeholder
+| Layer | Stack | Role |
+| --- | --- | --- |
+| Control plane | Vite, React, Tailwind | Gallery, forge flow, build logs, preview, deployment review |
+| API server | Fastify, Prisma, SQLite | Tool state, queues, SSE streams, action routing |
+| Planning | MiniMax M2.1 | Structured build plans and change summaries |
+| Generation | OpenCode, sandbox runner | Creates and builds generated internal tools |
+| App backend | InsForge | Per-tool data tables for generated apps |
+| Integrations | Composio | Gmail, Slack, Stripe, and other workflow actions |
+| Deployment | Railway | Public deployment target for approved tools |
+
+```mermaid
+flowchart TD
+  subgraph ForgeIt["ForgeIt Control Plane"]
+    Web["Web UI"]
+    API["Fastify API"]
+    Queue["Build Queue"]
+    Runner["Sandbox Runner"]
+  end
+
+  subgraph Intelligence["Planning + Generation"]
+    MiniMax["MiniMax M2.1"]
+    OpenCode["OpenCode"]
+  end
+
+  subgraph Runtime["Generated Tool Runtime"]
+    App["Generated Vite App"]
+    InsForge["InsForge Tables"]
+    Composio["Composio Actions"]
+    Railway["Railway Deploy"]
+  end
+
+  Web --> API
+  API --> Queue
+  Queue --> MiniMax
+  Queue --> Runner
+  Runner --> OpenCode
+  OpenCode --> App
+  MiniMax --> App
+  API --> InsForge
+  App --> InsForge
+  App --> API
+  API --> Composio
+  App --> Railway
 ```
 
-Runtime flow:
+## What It Proves
 
-```text
-Prompt
-  -> MiniMax build plan
-  -> InsForge table provisioning
-  -> OpenCode + MiniMax app generation
-  -> Vite build and preview
-  -> optional Railway deploy
-```
+| Product question | ForgeIt answer |
+| --- | --- |
+| Can a non-technical operator describe an internal tool? | Yes, the input is a workflow prompt, not a ticket spec. |
+| Can the system produce a real build plan? | Yes, pages, data models, integrations, workflows, and risks are structured before generation. |
+| Can generated apps use a real backend? | Yes, generated tools are backed by InsForge tables. |
+| Can high-risk actions stay safe in demo mode? | Yes, refunds, emails, and notifications are routed through reviewable action flows. |
 
-## Quick Start
+## Notes
 
-Requirements:
-
-- Node.js 20+
-- pnpm
-- OpenCode CLI: `npm i -g opencode-ai`
-- Railway CLI for real deploys: `npm i -g @railway/cli`
-
-Install and run:
-
-```bash
-pnpm install
-cp .env.example .env
-pnpm --filter @forgeit/server db:generate
-pnpm --filter @forgeit/server db:push
-pnpm --filter @forgeit/server seed
-pnpm dev
-```
-
-Open `http://localhost:5173`.
-
-Useful scripts:
-
-```bash
-pnpm dev
-pnpm --filter @forgeit/web build
-pnpm --filter @forgeit/server db:generate
-pnpm --filter @forgeit/server db:push
-pnpm --filter @forgeit/server seed
-pnpm exec tsc -b --noEmit
-```
-
-## Configuration
-
-Copy `.env.example` to `.env` and fill only the services you want to run live.
-
-MiniMax is required for planning and generation:
-
-```env
-MINIMAX_API_KEY=sk-cp-xxxxx
-MINIMAX_BASE_URL=https://api.minimax.io/v1
-MINIMAX_PLAN_MODEL=MiniMax-M2.1
-MINIMAX_CODE_MODEL=MiniMax-M2.1
-```
-
-InsForge is used as the backend for generated apps:
-
-```env
-INSFORGE_API_BASE_URL=https://your-project.insforge.app
-INSFORGE_API_KEY=ik_xxxxx
-INSFORGE_ANON_KEY=
-```
-
-Composio is optional. Without it, connection flows and high-risk actions stay simulated:
-
-```env
-COMPOSIO_API_KEY=sk_xxxxx
-COMPOSIO_AUTH_CONFIG_GMAIL=ac_xxxxx
-COMPOSIO_AUTH_CONFIG_SLACK=ac_xxxxx
-COMPOSIO_AUTH_CONFIG_STRIPE=ac_xxxxx
-```
-
-Railway is optional. Without a token, deploy steps fall back to demo-safe preview behavior:
-
-```env
-RAILWAY_API_TOKEN=
-RAILWAY_PROJECT_ID=
-```
-
-## Demo Flow
-
-1. Open `/tools` and choose **Forge New Tool**.
-2. Enter a prompt such as: `Build a refund request dashboard for my pizza shop. Pull refund emails from Gmail, match them with Stripe payments, let managers approve refunds, and notify Slack.`
-3. Review the generated plan for pages, data model, workflow, and integrations.
-4. Approve the build and watch the live SSE activity log.
-5. Open the generated preview iframe.
-6. Deploy to Railway when live credentials are configured.
-
-## First Customer Signal
-
-<table>
-  <tr>
-    <td align="center" width="180">
-      <a href="https://www.pleasurepizzasc.com/pleasure-point/menus/">
-        <img src="docs/assets/customers/pleasure-pizza-logo.png" alt="Pleasure Pizza" width="96">
-      </a>
-    </td>
-    <td>
-      <strong>Pleasure Pizza</strong><br>
-      Early customer validation for the first internal-tool workflow: a refund operations dashboard for a real pizza shop team.
-    </td>
-  </tr>
-</table>
-
-## Verification
-
-Run these before publishing changes:
-
-```bash
-pnpm --filter @forgeit/server db:generate
-pnpm --filter @forgeit/web build
-pnpm exec tsc -b --noEmit
-```
-
-## Repository Notes
-
-- Generated app sandboxes live under `generated/` at runtime and are ignored by git.
-- Secrets belong in `.env`, which is ignored by git.
-- `.env.example` contains placeholders only.
-- This repository currently does not include an open-source license.
+This repository currently does not include an open-source license.
