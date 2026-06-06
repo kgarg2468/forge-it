@@ -13,6 +13,11 @@ function req(name: string, fallback = ""): string {
   return process.env[name] ?? fallback;
 }
 
+function oneOf<T extends string>(name: string, allowed: readonly T[]): T | undefined {
+  const value = process.env[name];
+  return allowed.includes(value as T) ? (value as T) : undefined;
+}
+
 export const env = {
   port: Number(process.env.PORT ?? 8787),
   webOrigin: req("WEB_ORIGIN", "http://localhost:5173"),
@@ -40,6 +45,27 @@ export const env = {
   railway: {
     token: req("RAILWAY_API_TOKEN"),
     projectId: req("RAILWAY_PROJECT_ID") || undefined,
+  },
+  replicas: {
+    apiKey: req("REPLICAS_API_KEY"),
+    environmentId: req("REPLICAS_ENVIRONMENT_ID") || undefined,
+    repository: req("REPLICAS_REPOSITORY") || undefined,
+    model: req("REPLICAS_MODEL") || undefined,
+    codingAgent: req("REPLICAS_CODING_AGENT") || undefined,
+    baseUrl: req("REPLICAS_API_BASE_URL", "https://api.tryreplicas.com"),
+  },
+  devin: {
+    apiKey: req("DEVIN_API_KEY"),
+    orgId: req("DEVIN_ORG_ID") || undefined,
+    devinMode: oneOf("DEVIN_MODE", ["normal", "fast", "lite"] as const),
+    baseUrl: req("DEVIN_API_BASE_URL", "https://api.devin.ai/v3"),
+  },
+  memoir: {
+    webhookUrl: req("MEMOIR_WEBHOOK_URL") || undefined,
+  },
+  limrun: {
+    apiKey: req("LIM_API_KEY"),
+    streamBaseUrl: req("LIMRUN_STREAM_BASE_URL") || undefined,
   },
 
   paths: {

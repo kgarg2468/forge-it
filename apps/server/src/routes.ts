@@ -9,12 +9,23 @@ import {
 } from "@forgeit/shared";
 import { prisma, fromJson, toJson } from "./db.js";
 import { env } from "./env.js";
-import { minimax, insforge, composio, railway, runner, insforgeClientKey } from "./services.js";
+import {
+  minimax,
+  insforge,
+  composio,
+  railway,
+  runner,
+  insforgeClientKey,
+  replicas,
+  devin,
+  memoir,
+  limrun,
+} from "./services.js";
 import { enqueue } from "./queue.js";
 import { runBuildJob, runEditJob, generatePlanForTool } from "./orchestrator.js";
 import { subscribe, publish, setupSseHeaders } from "./sse.js";
 import { serializeTool, providerCatalog } from "./serialize.js";
-import { discoverContext } from "@forgeit/services";
+import { discoverContext, type SponsorIntegrationResult, type SponsorToolContext } from "@forgeit/services";
 
 const DEMO_SLUG = "demo";
 
@@ -36,6 +47,68 @@ async function getDemoWorkspace() {
   return ws;
 }
 
+function summarizePlan(plan: BuildPlan | null): string | undefined {
+  if (!plan) return undefined;
+  const pages = plan.pages.map((p) => p.name).slice(0, 5).join(", ");
+  const data = plan.dataModels.map((m) => m.name).slice(0, 5).join(", ");
+  const workflows = plan.workflows.map((w) => w.name).slice(0, 5).join(", ");
+  return [
+    `${plan.appName}: ${plan.description}`,
+    pages ? `Pages: ${pages}` : "",
+    data ? `Data models: ${data}` : "",
+    workflows ? `Workflows: ${workflows}` : "",
+  ]
+    .filter(Boolean)
+    .join(" | ");
+}
+
+async function sponsorContext(toolId: string): Promise<SponsorToolContext | null> {
+  const tool = await prisma.internalTool.findUnique({
+    where: { id: toolId },
+    include: {
+      prompts: { orderBy: { createdAt: "desc" }, take: 1 },
+      plans: { orderBy: { createdAt: "desc" }, take: 1 },
+      changes: { orderBy: { createdAt: "desc" }, take: 1 },
+    },
+  });
+  if (!tool) return null;
+  const plan = fromJson<BuildPlan | null>(tool.plans[0]?.planJson, null);
+  const change = tool.changes[0];
+  return {
+    toolId: tool.id,
+    toolName: tool.name,
+    toolSlug: tool.slug,
+    prompt: tool.prompts[0]?.rawPrompt,
+    planSummary: summarizePlan(plan) ?? tool.description ?? undefined,
+    changeSummary: change ? `${change.title}${change.summary ? `: ${change.summary}` : ""}` : undefined,
+    previewUrl: tool.previewUrl ?? undefined,
+    productionUrl: tool.productionUrl ?? undefined,
+  };
+}
+
+async function recordSponsorRun(toolId: string, result: SponsorIntegrationResult): Promise<void> {
+  await prisma.workflowRun.create({
+    data: {
+      toolId,
+      workflowName: `${result.provider} sponsor integration`,
+      slug: `sponsor:${result.provider}`,
+      status: result.ok ? "succeeded" : "failed",
+      simulated: result.simulated,
+      input: toJson({ provider: result.provider }),
+      output: toJson(result),
+      error: result.ok ? undefined : result.message,
+    },
+  });
+}
+
+function staticSponsorStatus(configured: boolean, missing: string[]) {
+  return {
+    configured,
+    mode: configured ? "live" : "simulated",
+    missing: configured ? [] : missing,
+  };
+}
+
 export async function registerRoutes(app: FastifyInstance): Promise<void> {
   // ---- health + me -------------------------------------------------------
   app.get("/api/health", async () => ({
@@ -45,6 +118,17 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       insforge: insforge.isConfigured,
       composio: composio.isConfigured,
       railway: railway.isConfigured,
+    },
+    sponsors: {
+      insforge: staticSponsorStatus(insforge.isConfigured, ["INSFORGE_API_BASE_URL", "INSFORGE_API_KEY"]),
+      replicas: replicas.status(),
+      devin: devin.status(),
+      memoir: memoir.status(),
+      limrun: limrun.status(),
+      vercel: staticSponsorStatus(
+        Boolean(process.env.VERCEL || process.env.VERCEL_PROJECT_ID || process.env.VERCEL_PROJECT_PRODUCTION_URL),
+        ["VERCEL_PROJECT_ID"],
+      ),
     },
   }));
 
@@ -342,6 +426,59 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
         error: result.error,
       },
     });
+    return result;
+  });
+
+  // ---- sponsor integrations --------------------------------------------
+  app.post("/api/tools/:id/sponsors/replicas-review", async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const ctx = await sponsorContext(id);
+    if (!ctx) {
+      reply.code(404);
+      return { error: "not found" };
+    }
+    const result = await replicas.createReview(ctx);
+    await recordSponsorRun(id, result);
+    if (!result.ok) reply.code(502);
+    return result;
+  });
+
+  app.post("/api/tools/:id/sponsors/devin-review", async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const ctx = await sponsorContext(id);
+    if (!ctx) {
+      reply.code(404);
+      return { error: "not found" };
+    }
+    const result = await devin.createReview(ctx);
+    await recordSponsorRun(id, result);
+    if (!result.ok) reply.code(502);
+    return result;
+  });
+
+  app.post("/api/tools/:id/sponsors/memoir-brief", async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const ctx = await sponsorContext(id);
+    if (!ctx) {
+      reply.code(404);
+      return { error: "not found" };
+    }
+    const result = await memoir.createLaunchBrief(ctx);
+    await recordSponsorRun(id, result);
+    if (!result.ok) reply.code(502);
+    return result;
+  });
+
+  app.post("/api/tools/:id/sponsors/limrun-preview", async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const ctx = await sponsorContext(id);
+    if (!ctx) {
+      reply.code(404);
+      return { error: "not found" };
+    }
+    const result = await limrun.createPreview(ctx);
+    await recordSponsorRun(id, result);
+    if (!result.ok) reply.code(502);
     return result;
   });
 

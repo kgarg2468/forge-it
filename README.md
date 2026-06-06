@@ -38,15 +38,6 @@
 
 ## Product
 
-<p align="center">
-  <img alt="ForgeIt landing page" src="docs/assets/screenshots/landing.png" width="900">
-</p>
-
-<p align="center">
-  <img alt="ForgeIt tools gallery" src="docs/assets/screenshots/tools-gallery.png" width="420">
-  <img alt="ForgeIt forge flow" src="docs/assets/screenshots/forge-flow.png" width="420">
-</p>
-
 ForgeIt starts where internal-tool requests usually start: a messy business workflow. It discovers the shape of the tool, drafts the plan, generates the app, provisions the backend, streams build progress, and gives the team a preview before anything goes live.
 
 ## First Workflow
@@ -79,6 +70,7 @@ flowchart LR
 | Generation | OpenCode, sandbox runner | Creates and builds generated internal tools |
 | App backend | InsForge | Per-tool data tables for generated apps |
 | Integrations | Composio | Gmail, Slack, Stripe, and other workflow actions |
+| Sponsor hooks | Replicas, Devin, Memoir, Limrun | Optional backend API handoffs with simulated fallback |
 | Deployment | Railway | Public deployment target for approved tools |
 
 ```mermaid
@@ -99,6 +91,7 @@ flowchart TD
     App["Generated Vite App"]
     InsForge["InsForge Tables"]
     Composio["Composio Actions"]
+    Sponsors["Sponsor Hooks"]
     Railway["Railway Deploy"]
   end
 
@@ -113,6 +106,7 @@ flowchart TD
   App --> InsForge
   App --> API
   API --> Composio
+  API --> Sponsors
   App --> Railway
 ```
 
@@ -124,6 +118,20 @@ flowchart TD
 | Can the system produce a real build plan? | Yes, pages, data models, integrations, workflows, and risks are structured before generation. |
 | Can generated apps use a real backend? | Yes, generated tools are backed by InsForge tables. |
 | Can high-risk actions stay safe in demo mode? | Yes, refunds, emails, and notifications are routed through reviewable action flows. |
+| Can sponsor APIs be claimed without blocking the demo? | Yes, sponsor hooks run live when configured and otherwise persist simulated workflow runs. |
+
+## Sponsor API Hooks
+
+ForgeIt exposes backend-only sponsor hooks that return stable response shapes in both live and simulated modes. Simulated mode is automatic when credentials are missing, so the demo flow still works while future real API setup stays straightforward.
+
+| Sponsor | Route | Live env vars |
+| --- | --- | --- |
+| Replicas | `POST /api/tools/:id/sponsors/replicas-review` | `REPLICAS_API_KEY`, `REPLICAS_ENVIRONMENT_ID`, optional `REPLICAS_REPOSITORY`, `REPLICAS_CODING_AGENT`, `REPLICAS_MODEL`, `REPLICAS_API_BASE_URL` |
+| Devin | `POST /api/tools/:id/sponsors/devin-review` | `DEVIN_API_KEY`, `DEVIN_ORG_ID`, optional `DEVIN_MODE`, `DEVIN_API_BASE_URL` |
+| Memoir | `POST /api/tools/:id/sponsors/memoir-brief` | `MEMOIR_WEBHOOK_URL` |
+| Limrun | `POST /api/tools/:id/sponsors/limrun-preview` | `LIM_API_KEY`, optional `LIMRUN_STREAM_BASE_URL` |
+
+`GET /api/health` includes a `sponsors` object that shows which hooks are live versus simulated.
 
 ## Notes
 
