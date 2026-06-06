@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": {
+      "@forgeit/shared": ["packages/shared/src/index.ts"],
+      "@forgeit/shared/*": ["packages/shared/src/*"],
+      "@forgeit/services": ["packages/services/src/index.ts"],
+      "@forgeit/services/*": ["packages/services/src/*"],
+      "@forgeit/runner": ["packages/runner/src/index.ts"],
+      "@forgeit/runner/*": ["packages/runner/src/*"]
+    },
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["src"]
+}
