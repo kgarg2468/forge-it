@@ -1,0 +1,14 @@
+# Nixpacks build hints (Railway / other PaaS).
+# Builds the static Vite app and serves it via `vite preview` bound to 0.0.0.0:$PORT.
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm run start"
