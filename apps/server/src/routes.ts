@@ -95,10 +95,26 @@ async function recordSponsorRun(toolId: string, result: SponsorIntegrationResult
       status: result.ok ? "succeeded" : "failed",
       simulated: result.simulated,
       input: toJson({ provider: result.provider }),
-      output: toJson(result),
+      output: toJson(redactForToolLog(result)),
       error: result.ok ? undefined : result.message,
     },
   });
+}
+
+function redactForToolLog(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map((item) => redactForToolLog(item));
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, child]) => [
+        key,
+        /authorization|api[_-]?key|password|secret|token/i.test(key) ? "[redacted]" : redactForToolLog(child),
+      ]),
+    );
+  }
+  if (typeof value === "string") {
+    return value.replace(/([?&](?:access_token|api_key|key|signature|sig|token)=)[^&]+/gi, "$1[redacted]");
+  }
+  return value;
 }
 
 function staticSponsorStatus(configured: boolean, missing: string[]) {

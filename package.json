@@ -16,7 +16,9 @@
     "db:generate": "pnpm --filter @forgeit/server db:generate",
     "db:studio": "pnpm --filter @forgeit/server db:studio",
     "seed": "pnpm --filter @forgeit/server seed",
-    "typecheck": "tsc -b --noEmit || true"
+    "typecheck": "tsc -b --noEmit || true",
+    "check:integrations": "node scripts/check-integrations.mjs",
+    "check:integrations:strict": "node scripts/check-integrations.mjs --strict"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

@@ -88,6 +88,30 @@ function objectFrom(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
+function nestedStringFrom(value: Record<string, unknown>, path: string[]): string | undefined {
+  let current: unknown = value;
+  for (const key of path) {
+    current = objectFrom(current)[key];
+  }
+  return stringFrom(current);
+}
+
+function redactSensitiveValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map((item) => redactSensitiveValue(item));
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, child]) => [
+        key,
+        /authorization|api[_-]?key|password|secret|token/i.test(key) ? "[redacted]" : redactSensitiveValue(child),
+      ]),
+    );
+  }
+  if (typeof value === "string") {
+    return value.replace(/([?&](?:access_token|api_key|key|signature|sig|token)=)[^&]+/gi, "$1[redacted]");
+  }
+  return value;
+}
+
 export class ReplicasService {
   private baseUrl: string;
   private fetchImpl: FetchLike;
@@ -156,7 +180,7 @@ export class ReplicasService {
         simulated: false,
         ok: false,
         message: `Replicas request failed with HTTP ${res.status}.`,
-        external: { status: String(res.status), raw: json },
+        external: { status: String(res.status), raw: redactSensitiveValue(json) },
       };
     }
 
@@ -170,7 +194,7 @@ export class ReplicasService {
         id: stringFrom(json.id) ?? stringFrom(json.replica_id),
         status: stringFrom(json.status),
         url: stringFrom(json.url),
-        raw: json,
+        raw: redactSensitiveValue(json),
       },
     };
   }
@@ -240,7 +264,7 @@ export class DevinService {
         simulated: false,
         ok: false,
         message: `Devin request failed with HTTP ${res.status}.`,
-        external: { status: String(res.status), raw: json },
+        external: { status: String(res.status), raw: redactSensitiveValue(json) },
       };
     }
 
@@ -254,7 +278,7 @@ export class DevinService {
         id: stringFrom(json.session_id) ?? stringFrom(json.id),
         status: stringFrom(json.status),
         url: stringFrom(json.url),
-        raw: json,
+        raw: redactSensitiveValue(json),
       },
     };
   }
@@ -313,7 +337,7 @@ export class MemoirService {
         simulated: false,
         ok: false,
         message: `Memoir webhook failed with HTTP ${res.status}.`,
-        external: { status: String(res.status), artifact, raw: json },
+        external: { status: String(res.status), artifact, raw: redactSensitiveValue(json) },
       };
     }
 
@@ -328,7 +352,7 @@ export class MemoirService {
         status: stringFrom(json.status) ?? "accepted",
         url: stringFrom(json.url),
         artifact,
-        raw: json,
+        raw: redactSensitiveValue(json),
       },
     };
   }
@@ -352,15 +376,26 @@ export class MemoirService {
 }
 
 export class LimrunService {
+  private fetchImpl: FetchLike;
+  private baseUrl: string;
+
   constructor(
     private cfg: {
       apiKey: string;
+      baseUrl?: string;
+      platform?: "android" | "ios";
       streamBaseUrl?: string;
+      fetchImpl?: FetchLike;
     },
-  ) {}
+  ) {
+    this.baseUrl = cfg.baseUrl ?? "https://api.lim.run";
+    this.fetchImpl = fetcher(cfg.fetchImpl);
+  }
 
   status(): SponsorStatus {
-    return sponsorStatus({ LIM_API_KEY: this.cfg.apiKey });
+    return sponsorStatus({
+      LIM_API_KEY: this.cfg.apiKey,
+    });
   }
 
   async createPreview(ctx: SponsorToolContext): Promise<SponsorIntegrationResult> {
@@ -380,16 +415,67 @@ export class LimrunService {
       };
     }
 
+    const platform = this.cfg.platform ?? "android";
+    const endpoint = platform === "ios" ? "/v1/ios_instances?wait=false" : "/v1/android_instances?wait=false";
+    const body = {
+      metadata: {
+        displayName: `ForgeIt ${ctx.toolName}`,
+        labels: {
+          source: "forgeit",
+          purpose: "mobile-qa",
+          toolId: ctx.toolId,
+          toolSlug: ctx.toolSlug,
+          previewUrl: ctx.previewUrl ?? "",
+          productionUrl: ctx.productionUrl ?? "",
+        },
+      },
+      spec: {
+        inactivityTimeout: "10m",
+        hardTimeout: "1h",
+      },
+    };
+
+    const res = await this.fetchImpl(`${this.baseUrl}${endpoint}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.cfg.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const json = objectFrom(await readJson(res));
+    if (!res.ok) {
+      return {
+        provider: "limrun",
+        configured: true,
+        simulated: false,
+        ok: false,
+        message: `Limrun handoff failed with HTTP ${res.status}.`,
+        external: { status: String(res.status), raw: redactSensitiveValue(json) },
+      };
+    }
+
+    const instanceId = nestedStringFrom(json, ["metadata", "id"]) ?? stringFrom(json.id);
+    const instanceStatus = nestedStringFrom(json, ["status", "state"]) ?? stringFrom(json.status) ?? "creating";
+    const streamUrl =
+      stringFrom(json.streamUrl) ??
+      stringFrom(json.url) ??
+      nestedStringFrom(json, ["status", "streamUrl"]) ??
+      nestedStringFrom(json, ["status", "endpointWebSocketUrl"]);
+
     return {
       provider: "limrun",
       configured: true,
-      simulated: true,
+      simulated: false,
       ok: true,
-      message: `Limrun API key detected. ForgeIt recorded a mobile-preview handoff for ${ctx.toolName}.`,
+      message: `Limrun ${platform} QA instance created for ${ctx.toolName}.`,
       external: {
-        id: `limrun-handoff-${ctx.toolId}`,
-        status: "handoff_ready",
-        url: `${this.cfg.streamBaseUrl ?? "https://console.limrun.com"}/?tool=${encodeURIComponent(ctx.toolSlug)}`,
+        id: instanceId,
+        status: instanceStatus,
+        url:
+          streamUrl ??
+          `${this.cfg.streamBaseUrl ?? "https://console.limrun.com"}/?tool=${encodeURIComponent(ctx.toolSlug)}`,
+        raw: redactSensitiveValue(json),
       },
     };
   }

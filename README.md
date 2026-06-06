@@ -1,7 +1,7 @@
 # ForgeIt
 
 <p align="center">
-  <img src="docs/assets/brand/forgeit-wordmark.png" alt="ForgeIt" width="300">
+  <img src="docs/assets/brand/forgeit-wordmark.png" alt="ForgeIt" width="220">
 </p>
 
 <p align="center">
@@ -18,6 +18,7 @@
   <img alt="MiniMax" src="https://img.shields.io/badge/MiniMax-M2.1-101014?style=for-the-badge">
   <img alt="InsForge" src="https://img.shields.io/badge/InsForge-Backend-111827?style=for-the-badge">
   <img alt="Railway" src="https://img.shields.io/badge/Railway-Deploy-0B0D0E?style=for-the-badge&logo=railway&logoColor=white">
+  <img alt="Vercel" src="https://img.shields.io/badge/Vercel-Frontend-000000?style=for-the-badge&logo=vercel&logoColor=white">
 </p>
 
 ## First User
@@ -156,6 +157,4 @@ ForgeIt is built around the hackathon sponsor stack: a user connects their compa
 
 Sponsor integration runs appear in tool activity logs so reviewers can see the review, launch, and QA steps attached to each generated internal tool.
 
-## Notes
-
-This repository currently does not include an open-source license.
+Implementation notes and verification commands live in [`docs/sponsor-integrations.md`](docs/sponsor-integrations.md). Run `pnpm check:integrations` to print redacted env presence, code evidence, and route evidence.

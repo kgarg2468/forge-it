@@ -65,6 +65,8 @@ export const env = {
   },
   limrun: {
     apiKey: req("LIM_API_KEY"),
+    baseUrl: req("LIMRUN_BASE_URL") || undefined,
+    platform: oneOf("LIMRUN_PLATFORM", ["android", "ios"] as const),
     streamBaseUrl: req("LIMRUN_STREAM_BASE_URL") || undefined,
   },
 

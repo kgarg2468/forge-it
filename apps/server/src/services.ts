@@ -55,6 +55,8 @@ export const memoir = new MemoirService({
 
 export const limrun = new LimrunService({
   apiKey: env.limrun.apiKey,
+  baseUrl: env.limrun.baseUrl,
+  platform: env.limrun.platform,
   streamBaseUrl: env.limrun.streamBaseUrl,
 });
 

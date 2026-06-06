@@ -156,6 +156,42 @@ describe("LimrunService", () => {
     assert.equal(result.ok, true);
     assert.match(String(result.external.url), /limrun\.example/);
   });
+
+  it("creates a Limrun mobile instance with review metadata", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const service = new LimrunService({
+      apiKey: "lim_key",
+      baseUrl: "https://limrun.test",
+      platform: "android",
+      fetchImpl: async (url, init) => {
+        calls.push({ url: String(url), init: init ?? {} });
+        return response(202, {
+          metadata: {
+            id: "android_123",
+            displayName: "ForgeIt Refund Request Dashboard",
+          },
+          status: {
+            state: "creating",
+            endpointWebSocketUrl: "wss://limrun.test/android_123",
+          },
+        });
+      },
+    });
+
+    const result = await service.createPreview(context);
+
+    assert.equal(result.configured, true);
+    assert.equal(result.simulated, false);
+    assert.equal(result.external.id, "android_123");
+    assert.equal(result.external.status, "creating");
+    assert.equal(calls[0]?.url, "https://limrun.test/v1/android_instances?wait=false");
+    assert.equal((calls[0]?.init.headers as Record<string, string>).Authorization, "Bearer lim_key");
+    const body = JSON.parse(String(calls[0]?.init.body));
+    assert.equal(body.metadata.displayName, "ForgeIt Refund Request Dashboard");
+    assert.equal(body.metadata.labels.toolSlug, "refund-request-dashboard");
+    assert.equal(body.metadata.labels.previewUrl, "http://localhost:4300");
+    assert.equal(body.spec.inactivityTimeout, "10m");
+  });
 });
 
 function response(status: number, body: unknown): Response {
