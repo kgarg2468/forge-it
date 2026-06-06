@@ -120,18 +120,19 @@ flowchart TD
 | Can high-risk actions stay safe in demo mode? | Yes, refunds, emails, and notifications are routed through reviewable action flows. |
 | Can sponsor APIs be claimed without blocking the demo? | Yes, sponsor hooks run live when configured and otherwise persist simulated workflow runs. |
 
-## Sponsor API Hooks
+## Sponsor Integrations
 
-ForgeIt exposes backend-only sponsor hooks that return stable response shapes in both live and simulated modes. Simulated mode is automatic when credentials are missing, so the demo flow still works while future real API setup stays straightforward.
+ForgeIt is built around the hackathon sponsor stack: a user connects their company stack, describes the internal tool they need, ForgeIt creates the app, shows the plan, builds the backend, connects actions, and gives a clean review/approval flow. These integrations help each generated tool show what is connected, what was built, and what is safe to approve before anything goes live.
 
-| Sponsor | Route | Live env vars |
+| Sponsor | Integrated in ForgeIt as | What we're using it for |
 | --- | --- | --- |
-| Replicas | `POST /api/tools/:id/sponsors/replicas-review` | `REPLICAS_API_KEY`, `REPLICAS_ENVIRONMENT_ID`, optional `REPLICAS_REPOSITORY`, `REPLICAS_CODING_AGENT`, `REPLICAS_MODEL`, `REPLICAS_API_BASE_URL` |
-| Devin | `POST /api/tools/:id/sponsors/devin-review` | `DEVIN_API_KEY`, `DEVIN_ORG_ID`, optional `DEVIN_MODE`, `DEVIN_API_BASE_URL` |
-| Memoir | `POST /api/tools/:id/sponsors/memoir-brief` | `MEMOIR_WEBHOOK_URL` |
-| Limrun | `POST /api/tools/:id/sponsors/limrun-preview` | `LIM_API_KEY`, optional `LIMRUN_STREAM_BASE_URL` |
+| InsForge | Backend for generated tools | ForgeIt uses InsForge to create secure backend tables for generated tools, including records like `RefundRequests`, `Customers`, and `AuditLogs`. Generated apps can read and write against those tables during preview and deployment. |
+| Replicas | Background coding-agent review | ForgeIt can hand off a generated tool or change summary to Replicas for background engineering follow-up after the first build. |
+| Cognition / Devin | Engineering review session | ForgeIt can send generated plan and change context to Devin for a review focused on safety, backend usage, demo-safe actions, and missing tests. |
+| Memoir | Launch packet for generated tools | ForgeIt turns each generated tool into a product and launch brief using the same context shown in the build plan, preview, and change review flow. |
+| Limrun | Mobile preview handoff | ForgeIt records a mobile-preview handoff for tools that need approval or operator workflows tested beyond the desktop preview. |
 
-`GET /api/health` includes a `sponsors` object that shows which hooks are live versus simulated.
+`GET /api/health` shows whether each sponsor integration is running live or in simulated mode. Sponsor workflow runs are saved in tool logs so judges can see the integrations even when credentials are not configured.
 
 ## Notes
 
