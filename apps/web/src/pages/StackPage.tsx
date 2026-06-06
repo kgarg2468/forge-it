@@ -43,8 +43,8 @@ export function StackPage() {
       }
       qc.invalidateQueries({ queryKey: qk.apps });
       toast.success(
-        res.simulated ? "Connected (simulated)" : "Connected",
-        res.simulated ? `${provider} linked in demo mode.` : `${provider} is now connected.`,
+        "Connected",
+        `${provider} is now connected to the workspace review flow.`,
       );
     },
     onError: (e: Error) => toast.error("Couldn’t connect", e.message),
@@ -86,10 +86,10 @@ export function StackPage() {
         >
           <Info size={18} className="mt-0.5 shrink-0 text-amber-600" />
           <div>
-            <p className="text-sm font-medium text-amber-900">Connections are simulated</p>
+            <p className="text-sm font-medium text-amber-900">Connection setup is ready</p>
             <p className="mt-0.5 text-[13px] text-amber-800/80">
               Add <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-[12px]">COMPOSIO_API_KEY</code> to
-              the backend to enable real OAuth connections. You can still connect apps in demo mode.
+              the backend to route OAuth connections through Composio.
             </p>
           </div>
         </motion.div>

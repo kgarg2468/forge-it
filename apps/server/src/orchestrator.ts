@@ -91,7 +91,7 @@ export async function runBuildJob(jobId: string): Promise<void> {
         tableMap,
         insforge: { url: env.insforge.baseUrl, key: insforgeClientKey },
         forgeitApiUrl: env.publicApiUrl,
-        demoSafe: true,
+        reviewMode: true,
         availableActions: actions,
       },
       (level, message, step) => {

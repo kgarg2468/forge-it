@@ -1,7 +1,7 @@
 /**
  * Typed runtime configuration, read from Vite env (`import.meta.env`).
  *
- * Every value has a sensible fallback so the app still renders (in a
+ * Every value has a sensible default so the app still renders (in a
  * "being forged" / offline state) even before the orchestrator wires the
  * real environment variables in.
  */
@@ -17,13 +17,13 @@ export function snake(input: string): string {
     .toLowerCase();
 }
 
-function str(value: string | undefined, fallback = ""): string {
-  return (value ?? "").trim() || fallback;
+function str(value: string | undefined, defaultValue = ""): string {
+  return (value ?? "").trim() || defaultValue;
 }
 
-function bool(value: string | undefined, fallback: boolean): boolean {
+function bool(value: string | undefined, defaultValue: boolean): boolean {
   const v = (value ?? "").trim().toLowerCase();
-  if (v === "") return fallback;
+  if (v === "") return defaultValue;
   return v === "true" || v === "1" || v === "yes" || v === "on";
 }
 
@@ -42,8 +42,8 @@ export interface AppConfig {
   toolSlug: string;
   /** Human-friendly tool name. */
   toolName: string;
-  /** When true, high-risk actions are simulated. */
-  demoSafe: boolean;
+  /** When true, high-risk actions use ForgeIt's approval-safe review flow. */
+  reviewMode: boolean;
 }
 
 function trimTrailingSlash(u: string): string {
@@ -57,11 +57,11 @@ export const config: AppConfig = {
   toolId: str(env.VITE_TOOL_ID),
   toolSlug: snake(str(env.VITE_TOOL_SLUG, "app")),
   toolName: str(env.VITE_TOOL_NAME, "ForgeIt Tool"),
-  demoSafe: bool(env.VITE_DEMO_SAFE, true),
+  reviewMode: bool(env.VITE_REVIEW_MODE, true),
 };
 
-/** Convenience flag — true when high-risk actions should be simulated. */
-export const isDemoSafe: boolean = config.demoSafe;
+/** Convenience flag — true when high-risk actions use the review flow. */
+export const isReviewMode: boolean = config.reviewMode;
 
 /** True when InsForge is configured enough to attempt requests. */
 export const hasInsforge: boolean = Boolean(

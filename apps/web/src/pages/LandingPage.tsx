@@ -148,7 +148,7 @@ export function LandingPage() {
               Start forging
             </LinkButton>
             <LinkButton to="/tools" size="lg" variant="secondary" leftIcon={<Play size={16} />}>
-              Watch demo
+              View example
             </LinkButton>
           </div>
 

@@ -7,7 +7,7 @@ interface ImportMetaEnv {
   readonly VITE_TOOL_ID?: string;
   readonly VITE_TOOL_SLUG?: string;
   readonly VITE_TOOL_NAME?: string;
-  readonly VITE_DEMO_SAFE?: string;
+  readonly VITE_REVIEW_MODE?: string;
 }
 
 interface ImportMeta {

@@ -95,7 +95,7 @@ async function request<T>(
 ): Promise<T> {
   if (!hasInsforge) {
     throw new InsforgeError(
-      "InsForge is not configured (VITE_INSFORGE_URL / VITE_INSFORGE_KEY missing).",
+      "InsForge connection requires VITE_INSFORGE_URL and VITE_INSFORGE_KEY.",
       0,
       null
     );

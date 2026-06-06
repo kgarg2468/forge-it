@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { Menu, ShieldCheck, X } from "lucide-react";
-import { config, isDemoSafe } from "../lib/config";
+import { config, isReviewMode } from "../lib/config";
 import { cn } from "../lib/cn";
 
 export interface NavItem {
@@ -121,13 +121,13 @@ export function Layout({
           <div className="ml-auto flex items-center gap-2">{topbarActions}</div>
         </header>
 
-        {/* Demo-safe banner */}
-        {isDemoSafe && (
+        {/* Review-flow banner */}
+        {isReviewMode && (
           <div className="flex items-center gap-2 border-b border-amber-100 bg-amber-50 px-4 sm:px-6 py-2 text-sm text-amber-800">
             <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
             <span>
-              <span className="font-medium">Demo-safe mode.</span> High-risk
-              actions are simulated, not executed for real.
+              <span className="font-medium">Review mode.</span> High-risk
+              actions move through the approval flow before direct execution.
             </span>
           </div>
         )}

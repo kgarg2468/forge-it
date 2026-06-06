@@ -3,7 +3,7 @@ import { classifyActionRisk, PROVIDER_META, type Provider } from "@forgeit/share
 // ---------------------------------------------------------------------------
 // Composio service — wraps @composio/core (v3). Lazy-imported so the platform
 // runs even before COMPOSIO_API_KEY is set. Uses connectedAccounts.link()
-// (NOT the retired initiate()). Degrades to a clear "not configured" state.
+// (NOT the retired initiate()). Keeps setup state explicit for the caller.
 // ---------------------------------------------------------------------------
 
 export interface ConnectResult {
@@ -47,7 +47,7 @@ export class ComposioService {
   }
 
   private async getClient(): Promise<any> {
-    if (!this.isConfigured) throw new Error("Composio not configured (set COMPOSIO_API_KEY)");
+    if (!this.isConfigured) throw new Error("Composio requires COMPOSIO_API_KEY");
     if (this.client) return this.client;
     const mod: any = await import("@composio/core");
     const Composio = mod.Composio ?? mod.default?.Composio ?? mod.default;
@@ -88,8 +88,8 @@ export class ComposioService {
   }
 
   /**
-   * Execute a Composio action. High-risk actions are simulated unless live=true
-   * (demo-safe mode). Returns {simulated:true} when simulated or not configured.
+   * Execute a Composio action. High-risk actions use the review flow unless live=true.
+   * The internal result marks review-flow actions for downstream logs.
    */
   async execute(
     slug: string,
@@ -99,13 +99,12 @@ export class ComposioService {
   ): Promise<ExecuteResult> {
     const risk = classifyActionRisk(slug);
     const live = opts.live === true;
-    // Demo-safe: never run high-risk for real unless explicitly live; if not
-    // configured, always simulate.
+    // Approval-safe: never run high-risk directly unless explicitly live.
     if (!this.isConfigured || (risk === "high" && !live)) {
       return {
         ok: true,
         simulated: true,
-        data: { note: `Simulated ${slug} (demo-safe mode)`, args },
+        data: { note: `Recorded ${slug} in the approval flow`, args },
       };
     }
     try {

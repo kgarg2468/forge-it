@@ -140,7 +140,7 @@ flowchart TD
 | Can a non-technical operator describe an internal tool? | Yes, the input is a workflow prompt, not a ticket spec. |
 | Can the system produce a real build plan? | Yes, pages, data models, integrations, workflows, and risks are structured before generation. |
 | Can generated apps use a real backend? | Yes, generated tools are backed by InsForge tables. |
-| Can high-risk actions stay safe in demo mode? | Yes, refunds, emails, and notifications are routed through reviewable action flows. |
+| Can high-risk actions stay approval-safe? | Yes, refunds, emails, and notifications are routed through reviewable action flows. |
 | Can sponsor integrations extend the generated-tool lifecycle? | Yes, ForgeIt routes build plans, previews, changes, and approval context through sponsor-backed review, launch, and QA workflows. |
 
 ## Sponsor Integrations
@@ -151,10 +151,10 @@ ForgeIt is built around the hackathon sponsor stack: a user connects their compa
 | --- | --- | --- |
 | InsForge | Backend for generated tools | ForgeIt uses InsForge to create secure backend tables for generated tools, including records like `RefundRequests`, `Customers`, and `AuditLogs`. Generated apps can read and write against those tables during preview and deployment. |
 | Replicas | Background coding-agent review | ForgeIt can hand off a generated tool or change summary to Replicas for background engineering follow-up after the first build. |
-| Cognition / Devin | Engineering review session | ForgeIt can send generated plan and change context to Devin for a review focused on safety, backend usage, demo-safe actions, and missing tests. |
+| Cognition / Devin | Engineering review session | ForgeIt can send generated plan and change context to Devin for a review focused on safety, backend usage, approval-safe actions, and missing tests. |
 | Memoir | Launch packet for generated tools | ForgeIt turns each generated tool into a product and launch brief using the same context shown in the build plan, preview, and change review flow. |
 | Limrun | Mobile QA workflow | ForgeIt routes approval-heavy operator workflows into mobile QA so teams can review how generated tools behave beyond the desktop preview. |
 
 Sponsor integration runs appear in tool activity logs so reviewers can see the review, launch, and QA steps attached to each generated internal tool.
 
-Implementation notes and verification commands live in [`docs/sponsor-integrations.md`](docs/sponsor-integrations.md). Run `pnpm check:integrations` to print redacted env presence, code evidence, and route evidence.
+Run `pnpm check:integrations` to print redacted env presence, code evidence, and route evidence.

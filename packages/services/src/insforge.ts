@@ -9,7 +9,7 @@ import { tableName as makeTableName, type BuildPlan, type FieldType, type PlanFi
 //   POST   /api/database/records/{table} (array body, Prefer: return=representation)
 //   GET    /api/database/records/{table}?col=eq.v&order=col.desc&limit=n
 // Auth: header "X-API-Key: ik_..." (Bearer also works). id/created_at/updated_at are auto-added.
-// rlsEnabled is false for generated tables so the project key reads/writes freely (demo).
+// rlsEnabled is false for generated tables so generated tools can read/write during preview and deployment.
 // ---------------------------------------------------------------------------
 
 const AUTO_FIELDS = new Set(["id", "created_at", "updated_at", "createdat", "updatedat"]);

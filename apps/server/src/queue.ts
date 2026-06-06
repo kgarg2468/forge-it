@@ -1,4 +1,4 @@
-// Minimal in-process FIFO queue with concurrency 1 (demo-safe). The prod swap
+// Minimal in-process FIFO queue with concurrency 1. The prod swap
 // is BullMQ + Redis, but a single worker is plenty for one builder at a time.
 
 type Job = () => Promise<void>;

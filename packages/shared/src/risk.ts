@@ -1,7 +1,7 @@
 import type { ActionRisk } from "./enums.js";
 
 // Classify a Composio tool slug (UPPER_SNAKE_CASE) by risk, per PRD §12.2.
-// High-risk actions default to demo-safe mode (simulated) unless explicitly run live.
+// High-risk actions default to the approval-safe review flow unless explicitly run live.
 
 const HIGH_RISK_PATTERNS = [
   /SEND_EMAIL/,

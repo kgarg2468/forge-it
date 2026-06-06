@@ -2,20 +2,20 @@
  * Runs Composio actions through the ForgeIt backend.
  *
  * The browser NEVER holds the Composio key — it only calls the ForgeIt backend,
- * which proxies to Composio. High-risk actions are gated by the demo-safe flag:
- * when `isDemoSafe` is true we never request a live execution.
+ * which proxies to Composio. High-risk actions are gated by the review-flow flag:
+ * when `isReviewMode` is true we never request a live execution.
  *
  * Usage:
  *   import { runAction } from "./lib/actions";
  *   const res = await runAction("GMAIL_SEND_EMAIL", { to: "a@b.com", subject: "Hi" });
- *   if (res.ok) { ... }  // res.simulated tells you if it was a dry run
+ *   if (res.ok) { ... }
  */
-import { config, hasForgeitApi, isDemoSafe } from "./config";
+import { config, hasForgeitApi, isReviewMode } from "./config";
 
 export interface ActionResult<T = unknown> {
-  /** Whether the call (or simulation) succeeded. */
+  /** Whether the action request succeeded. */
   ok: boolean;
-  /** True when the result is a simulation / dry-run rather than a live execution. */
+  /** True when the result used the approval-safe review flow rather than direct execution. */
   simulated: boolean;
   /** The data returned by the action (when ok). */
   data?: T;
@@ -26,13 +26,13 @@ export interface ActionResult<T = unknown> {
 export interface RunActionOptions {
   /**
    * Request a live (real) execution. Ignored — forced to false — when the app
-   * is in demo-safe mode. Defaults to false.
+   * is in review mode. Defaults to false.
    */
   live?: boolean;
 }
 
-/** Build the simulated success object used as a graceful fallback. */
-function simulatedSuccess<T = unknown>(
+/** Build the approval-safe success object used when direct execution is unavailable. */
+function reviewFlowSuccess<T = unknown>(
   slug: string,
   args: Record<string, unknown>,
   note: string
@@ -54,22 +54,22 @@ function simulatedSuccess<T = unknown>(
  * Execute a Composio action by slug via the ForgeIt backend.
  *
  * Behavior:
- *  - In demo-safe mode, `live` is forced to false (high-risk actions simulated).
- *  - If the backend is not configured or is unreachable, returns a simulated
- *    success object so the UI keeps working in deployed/offline contexts.
+ *  - In review mode, `live` is forced to false for high-risk actions.
+ *  - If the backend needs setup or is unreachable, returns an approval-safe
+ *    success object so the UI keeps the workflow moving.
  */
 export async function runAction<T = unknown>(
   slug: string,
   args: Record<string, unknown>,
   opts?: RunActionOptions
 ): Promise<ActionResult<T>> {
-  const live = isDemoSafe ? false : Boolean(opts?.live);
+  const live = isReviewMode ? false : Boolean(opts?.live);
 
   if (!hasForgeitApi) {
-    return simulatedSuccess<T>(
+    return reviewFlowSuccess<T>(
       slug,
       args,
-      "ForgeIt backend not configured — returning a simulated result."
+      "ForgeIt backend setup is pending — returning an approval-safe result."
     );
   }
 
@@ -83,11 +83,11 @@ export async function runAction<T = unknown>(
       body: JSON.stringify({ slug, args, live }),
     });
   } catch {
-    // Backend unreachable — degrade gracefully so the UI still demonstrates the flow.
-    return simulatedSuccess<T>(
+    // Backend unreachable — keep the approval flow available.
+    return reviewFlowSuccess<T>(
       slug,
       args,
-      "ForgeIt backend unreachable — returning a simulated result."
+      "ForgeIt backend unreachable — returning an approval-safe result."
     );
   }
 

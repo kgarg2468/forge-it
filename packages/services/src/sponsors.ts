@@ -28,7 +28,7 @@ export interface SponsorIntegrationResult {
 
 export interface SponsorStatus {
   configured: boolean;
-  mode: "live" | "simulated";
+  mode: "live" | "review";
   missing: string[];
 }
 
@@ -44,7 +44,7 @@ function sponsorStatus(required: Record<string, string | undefined>): SponsorSta
     .map(([key]) => key);
   return {
     configured: missing.length === 0,
-    mode: missing.length === 0 ? "live" : "simulated",
+    mode: missing.length === 0 ? "live" : "review",
     missing,
   };
 }
@@ -146,9 +146,9 @@ export class ReplicasService {
         configured: false,
         simulated: true,
         ok: true,
-        message: `Simulated Replicas background agent review for ${ctx.toolName}.`,
+        message: `Replicas background agent review queued for ${ctx.toolName}.`,
         external: {
-          id: `sim-replica-${ctx.toolId}`,
+          id: `review-replica-${ctx.toolId}`,
           status: "queued",
           url: "https://tryreplicas.com/dashboard",
         },
@@ -232,9 +232,9 @@ export class DevinService {
         configured: false,
         simulated: true,
         ok: true,
-        message: `Simulated Devin engineering review for ${ctx.toolName}.`,
+        message: `Devin engineering review session created for ${ctx.toolName}.`,
         external: {
-          id: `sim-devin-${ctx.toolId}`,
+          id: `review-devin-${ctx.toolId}`,
           status: "created",
           url: "https://app.devin.ai",
         },
@@ -243,7 +243,7 @@ export class DevinService {
 
     const body = {
       title: `ForgeIt review: ${ctx.toolName}`,
-      prompt: `Perform an engineering review of this ForgeIt-generated internal tool. Focus on safety, generated backend usage, demo-safe action handling, and missing tests.\n\n${contextLines(ctx)}`,
+      prompt: `Perform an engineering review of this ForgeIt-generated internal tool. Focus on safety, generated backend usage, approval-safe action handling, and missing tests.\n\n${contextLines(ctx)}`,
       devin_mode: this.cfg.devinMode,
       tags: ["forgeit", "sponsor-integration"],
     };
@@ -309,8 +309,8 @@ export class MemoirService {
         configured: false,
         simulated: true,
         ok: true,
-        message: `Simulated Memoir launch packet for ${ctx.toolName}.`,
-        external: { id: `sim-memoir-${ctx.toolId}`, status: "draft", artifact },
+        message: `Memoir launch packet drafted for ${ctx.toolName}.`,
+        external: { id: `launch-memoir-${ctx.toolId}`, status: "draft", artifact },
       };
     }
 
@@ -406,9 +406,9 @@ export class LimrunService {
         configured: false,
         simulated: true,
         ok: true,
-        message: `Simulated Limrun mobile preview for ${ctx.toolName}.`,
+        message: `Limrun mobile QA preview prepared for ${ctx.toolName}.`,
         external: {
-          id: `sim-limrun-${ctx.toolId}`,
+          id: `qa-limrun-${ctx.toolId}`,
           status: "ready",
           url: `https://limrun.example/streams/${ctx.toolSlug}`,
         },

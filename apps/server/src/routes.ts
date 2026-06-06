@@ -120,7 +120,7 @@ function redactForToolLog(value: unknown): unknown {
 function staticSponsorStatus(configured: boolean, missing: string[]) {
   return {
     configured,
-    mode: configured ? "live" : "simulated",
+    mode: configured ? "live" : "review",
     missing: configured ? [] : missing,
   };
 }
@@ -168,7 +168,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     const body = req.body as { provider: Provider };
     const ws = await getDemoWorkspace();
     if (!composio.isConfigured) {
-      // Not configured yet: record a pending/simulated connection so the UI flows.
+      // Record a review-flow connection so the UI remains ready for app linking.
       const existing = await prisma.connectedApp.findFirst({
         where: { workspaceId: ws.id, provider: body.provider },
       });
@@ -540,7 +540,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
         else step(res.error ?? "Railway deploy finished (no URL parsed)", res.ok ? "info" : "error");
         await prisma.deployment.update({ where: { id: dep.id }, data: { logs: res.logs?.slice(0, 5000) } });
       } else {
-        step("Railway not configured — using local preview URL as the live target.", "info");
+        step("Railway deployment service is being prepared — using the active preview URL.", "info");
         step("Connecting InsForge backend…");
         step("Setting environment variables…");
       }

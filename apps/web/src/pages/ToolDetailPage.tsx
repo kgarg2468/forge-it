@@ -186,7 +186,7 @@ export function ToolDetailPage() {
         {tab === "workflows" && <WorkflowsTab toolId={id} />}
         {tab === "permissions" && <PermissionsTab tool={tool} />}
         {tab === "changes" && <ChangesTab toolId={id} />}
-        {tab === "deployments" && <DeploymentsTab toolId={id} fallback={tool.deployments} />}
+        {tab === "deployments" && <DeploymentsTab toolId={id} initialDeployments={tool.deployments} />}
         {tab === "logs" && <LogsTab toolId={id} />}
       </div>
     </div>
@@ -518,11 +518,11 @@ function ChangesTab({ toolId }: { toolId: string }) {
 
 // ----- Deployments ----------------------------------------------------------
 
-function DeploymentsTab({ toolId, fallback }: { toolId: string; fallback: NonNullable<ReturnType<typeof useTool>["data"]>["deployments"] }) {
+function DeploymentsTab({ toolId, initialDeployments }: { toolId: string; initialDeployments: NonNullable<ReturnType<typeof useTool>["data"]>["deployments"] }) {
   const { data, isLoading } = useQuery({
     queryKey: qk.deployments(toolId),
     queryFn: () => api.deployments(toolId),
-    initialData: fallback,
+    initialData: initialDeployments,
   });
   if (isLoading) return <Skeleton className="h-40 w-full rounded-3xl" />;
   const deploys = data ?? [];
@@ -597,7 +597,6 @@ function LogsTab({ toolId }: { toolId: string }) {
                 <div className="flex items-center gap-3">
                   <WorkflowIcon size={15} className="text-ink-faint" />
                   <span className="text-sm font-medium text-ink">{r.workflowName}</span>
-                  {r.simulated && <Tag>simulated</Tag>}
                 </div>
                 <div className="flex items-center gap-3">
                   <StatusBadge status={r.status} size="sm" />

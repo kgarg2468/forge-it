@@ -21,7 +21,7 @@ export interface GenerateArgs {
   tableMap: Record<string, string>;
   insforge: { url: string; key: string };
   forgeitApiUrl: string;
-  demoSafe: boolean;
+  reviewMode: boolean;
   availableActions: Array<{ slug: string; provider: string; risk: string }>;
 }
 
@@ -43,7 +43,7 @@ export class Runner {
       `VITE_TOOL_ID=${args.toolId}`,
       `VITE_TOOL_SLUG=${args.toolSlug}`,
       `VITE_TOOL_NAME=${args.toolName}`,
-      `VITE_DEMO_SAFE=${args.demoSafe ? "true" : "false"}`,
+      `VITE_REVIEW_MODE=${args.reviewMode ? "true" : "false"}`,
       "",
     ].join("\n");
     await fs.writeFile(path.join(dir, ".env"), env, "utf8");

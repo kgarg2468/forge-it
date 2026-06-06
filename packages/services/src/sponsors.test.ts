@@ -20,7 +20,7 @@ const context: SponsorToolContext = {
 };
 
 describe("ReplicasService", () => {
-  it("returns a simulated review when no API key is configured", async () => {
+  it("returns a review workflow when no API key is configured", async () => {
     const service = new ReplicasService({ apiKey: "", environmentId: "env_123" });
 
     const result = await service.createReview(context);
@@ -29,7 +29,7 @@ describe("ReplicasService", () => {
     assert.equal(result.configured, false);
     assert.equal(result.simulated, true);
     assert.equal(result.ok, true);
-    assert.match(result.message, /Simulated Replicas/i);
+    assert.match(result.message, /Replicas background agent review/i);
     assert.equal(result.external.url, "https://tryreplicas.com/dashboard");
   });
 
@@ -66,7 +66,7 @@ describe("ReplicasService", () => {
 });
 
 describe("DevinService", () => {
-  it("returns a simulated session when no API key is configured", async () => {
+  it("returns a review session when no API key is configured", async () => {
     const service = new DevinService({ apiKey: "", orgId: "org_123" });
 
     const result = await service.createReview(context);
@@ -75,13 +75,13 @@ describe("DevinService", () => {
     assert.equal(result.configured, false);
     assert.equal(result.simulated, true);
     assert.equal(result.ok, true);
-    assert.match(result.message, /Simulated Devin/i);
+    assert.match(result.message, /Devin engineering review session/i);
   });
 
   it("creates a real Devin session with the expected auth and payload", async () => {
     const calls: Array<{ url: string; init: RequestInit }> = [];
     const service = new DevinService({
-      apiKey: "cog_key",
+      apiKey: "devin_test_key",
       orgId: "org_123",
       devinMode: "normal",
       fetchImpl: async (url, init) => {
@@ -100,7 +100,7 @@ describe("DevinService", () => {
     assert.equal(result.simulated, false);
     assert.equal(result.external.id, "session_123");
     assert.equal(calls[0]?.url, "https://api.devin.ai/v3/organizations/org_123/sessions");
-    assert.equal((calls[0]?.init.headers as Record<string, string>).Authorization, "Bearer cog_key");
+    assert.equal((calls[0]?.init.headers as Record<string, string>).Authorization, "Bearer devin_test_key");
     const body = JSON.parse(String(calls[0]?.init.body));
     assert.equal(body.devin_mode, "normal");
     assert.match(body.prompt, /engineering review/i);
@@ -145,7 +145,7 @@ describe("MemoirService", () => {
 });
 
 describe("LimrunService", () => {
-  it("returns a simulated mobile preview when no API key is configured", async () => {
+  it("returns a mobile QA preview when no API key is configured", async () => {
     const service = new LimrunService({ apiKey: "" });
 
     const result = await service.createPreview(context);

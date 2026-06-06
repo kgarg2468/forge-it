@@ -32,11 +32,11 @@ export function buildGenPrompt(ctx: GenContext): string {
 
   const actions = availableActions.length
     ? availableActions.map((a) => `- ${a.slug} (${a.provider}, ${a.risk}-risk)`).join("\n")
-    : "(no live actions connected; use runAction with plausible slugs e.g. SLACK_SENDS_A_MESSAGE_TO_A_CHANNEL — they will run in demo-safe mode)";
+    : "(no connected action catalog was provided; use runAction with plausible slugs e.g. SLACK_SENDS_A_MESSAGE_TO_A_CHANNEL so action buttons still follow the approval flow)";
 
   return `IMPORTANT: Work ONLY inside the current working directory (this is a standalone app). Do NOT read, list, or modify any files outside it (no parent directories, no absolute paths elsewhere). Everything you need is here.
 
-You are extending an existing Vite + React + TypeScript + Tailwind starter app (this directory) into a specific internal tool. READ AGENTS.md first — it documents the data client (insforge), the actions client (runAction), the config, and the reusable UI primitives. REUSE those primitives; do not add new dependencies.
+You are extending an existing Vite + React + TypeScript + Tailwind starter app (this directory) into a specific internal tool. Reuse the existing data client (insforge), actions client (runAction), runtime config, and UI primitives. Do not add new dependencies.
 
 BUILD THIS TOOL: "${ctx.toolName}"
 ${plan.description}
@@ -47,7 +47,7 @@ ${tables}
 PAGES TO BUILD (create under src/pages and register routes in src/App.tsx, with a nav in the Layout):
 ${pages}
 
-WORKFLOWS / ACTIONS (wire buttons that perform these; high-risk actions MUST go through the ConfirmActionModal and runAction, which defaults to demo-safe simulation):
+WORKFLOWS / ACTIONS (wire buttons that perform these; high-risk actions MUST go through the ConfirmActionModal and runAction approval flow):
 ${workflows || "(none)"}
 
 AVAILABLE ACTION SLUGS (call via runAction(slug, args)):
@@ -56,8 +56,8 @@ ${actions}
 REQUIREMENTS:
 - Make the primary dashboard/list page the home route "/". Show real data from InsForge via the insforge client (list/get), with MetricCards summarizing counts/totals, a FilterBar, and a DataTable. Include loading, empty, and error states (primitives exist).
 - Detail pages should load a record by id and show its fields plus action buttons (Approve/Reject/etc.) that open ConfirmActionModal and call runAction.
-- If a table is empty, seed a few realistic sample rows on first load (insforge.insert) so the UI is never empty — but guard so it only seeds once.
-- Keep the soft, rounded, card-based aesthetic. Polished and demo-ready.
+- If a table is empty, seed a few realistic starter rows on first load (insforge.insert) so the UI is never empty — but guard so it only seeds once.
+- Keep the soft, rounded, card-based aesthetic. Polished and presentation-ready.
 - Do not edit lib/insforge.ts, lib/actions.ts, or lib/config.ts except to add small helpers if truly needed.
 - Ensure 'npm run build' succeeds (valid TypeScript). Keep imports correct.
 
@@ -65,7 +65,7 @@ Work efficiently: edit src/pages/Home.tsx and add the other pages, update src/Ap
 }
 
 export function buildEditPrompt(message: string): string {
-  return `Apply this change to the current internal tool app (this directory). Read AGENTS.md if needed. Reuse existing primitives and the insforge/runAction clients. Keep TypeScript valid (npm run build must pass). Change requested:\n\n"${message}"`;
+  return `Apply this change to the current internal tool app (this directory). Reuse existing primitives and the insforge/runAction clients. Keep TypeScript valid (npm run build must pass). Change requested:\n\n"${message}"`;
 }
 
 export function buildRepairPrompt(errorLog: string): string {

@@ -20,6 +20,7 @@ describe("integration checker", () => {
     assert.match(output, /Cognition \/ Devin/);
     assert.match(output, /REPLICAS_API_KEY=<present:redacted>/);
     assert.match(output, /DEVIN_API_KEY=<present:redacted>/);
+    assert.doesNotMatch(output, /<missing>/);
     assert.doesNotMatch(output, /rep_secret/);
     assert.doesNotMatch(output, /devin_secret/);
     assert.equal(report.integrations.find((item) => item.name === "Replicas")?.code.status, "wired");

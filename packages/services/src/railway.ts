@@ -7,7 +7,7 @@ const pexec = promisify(execFile);
 // Railway deploy service. For deploying a freshly-generated LOCAL dir, the
 // Railway CLI ("railway up") is the right tool — it uploads the dir and builds
 // remotely. GraphQL only deploys from repo/image. We shell out to the CLI with
-// RAILWAY_TOKEN (project token recommended). Not configured -> caller simulates.
+// RAILWAY_TOKEN (project token recommended). Setup state is returned to caller.
 //   railway up --service <name> --detach   (cwd = generated dir)
 //   railway domain --service <name>        -> public *.up.railway.app URL
 // App must bind 0.0.0.0:$PORT.
@@ -44,7 +44,7 @@ export class RailwayService {
 
   /** Deploy a local directory as a Railway service and return its public URL. */
   async deployDir(dir: string, serviceName: string): Promise<DeployResult> {
-    if (!this.isConfigured) return { ok: false, logs: "", error: "Railway not configured" };
+    if (!this.isConfigured) return { ok: false, logs: "", error: "Railway deploy service requires RAILWAY_API_TOKEN" };
     if (!(await this.cliAvailable()))
       return {
         ok: false,

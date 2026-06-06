@@ -137,7 +137,7 @@ export function buildIntegrationReport({ env = process.env, rootDir = defaultRoo
       envPresence[name] = Boolean(mergedEnv[name]);
     }
     const codeStatus = evidence.every((item) => item.matched) ? "wired" : "incomplete";
-    const configStatus = missingRequired.length === 0 ? "ready" : "needs env";
+    const configStatus = missingRequired.length === 0 ? "ready" : "requires setup";
     return {
       ...definition,
       required: {
@@ -163,7 +163,7 @@ export function buildIntegrationReport({ env = process.env, rootDir = defaultRoo
 }
 
 function redactEnvList(names, presence) {
-  return names.map((name) => `${name}=${presence[name] ? "<present:redacted>" : "<missing>"}`).join(", ");
+  return names.map((name) => `${name}=${presence[name] ? "<present:redacted>" : "<requires setup>"}`).join(", ");
 }
 
 function pad(value, width) {
@@ -189,11 +189,11 @@ export function formatReport(report, { env = process.env, rootDir = defaultRoot,
   ];
 
   for (const item of report.integrations) {
-    const configStatus = item.required.missing.length === 0 ? "ready" : "needs env";
+    const configStatus = item.required.missing.length === 0 ? "ready" : "requires setup";
     lines.push(`${pad(item.name, 20)} ${pad(item.code.status, 10)} ${pad(configStatus, 10)} ${item.purpose}`);
   }
 
-  lines.push("", "Required env presence:");
+  lines.push("", "Runtime env status:");
   for (const item of report.integrations) {
     lines.push(`- ${item.name}: ${redactEnvList([...item.required.present, ...item.required.missing], envPresence)}`);
   }
@@ -201,7 +201,7 @@ export function formatReport(report, { env = process.env, rootDir = defaultRoot,
   lines.push("", "Code evidence:");
   for (const item of report.integrations) {
     const evidence = item.code.evidence
-      .map((entry) => `${entry.path}${entry.matched ? "" : " (missing match)"}`)
+      .map((entry) => `${entry.path}${entry.matched ? "" : " (requires attention)"}`)
       .join(", ");
     lines.push(`- ${item.name}: ${evidence}`);
   }

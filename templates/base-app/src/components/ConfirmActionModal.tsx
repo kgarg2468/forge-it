@@ -11,7 +11,7 @@ import { Modal } from "./Modal";
 import { Button } from "./Button";
 import { runAction } from "../lib/actions";
 import type { ActionResult } from "../lib/actions";
-import { isDemoSafe } from "../lib/config";
+import { isReviewMode } from "../lib/config";
 
 export interface ConfirmActionModalProps {
   open: boolean;
@@ -59,7 +59,7 @@ export function ConfirmActionModal({
   async function handleRun() {
     setPhase("running");
     try {
-      // In demo-safe mode runAction forces a simulation regardless of `live`.
+      // In review mode runAction prevents direct execution regardless of `live`.
       const res = await runAction(slug, args, { live: false });
       setResult(res);
       setPhase(res.ok ? "done" : "error");
@@ -130,14 +130,13 @@ export function ConfirmActionModal({
           )}
         </div>
 
-        {/* Demo-safe note */}
-        {isDemoSafe && (
+        {/* Review-flow note */}
+        {isReviewMode && (
           <p className="flex items-start gap-2 text-xs text-amber-700">
             <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
             <span>
-              Demo-safe mode is on — this will be{" "}
-              <span className="font-medium">simulated</span>, not executed for
-              real.
+              Review mode is on — this action will be recorded in the{" "}
+              <span className="font-medium">approval flow</span> before direct execution.
             </span>
           </p>
         )}
@@ -149,7 +148,6 @@ export function ConfirmActionModal({
               <CheckCircle2 className="h-5 w-5" aria-hidden />
               <p className="text-sm font-semibold">
                 Test passed
-                {result.simulated ? " (simulated)" : " (live)"}
               </p>
             </div>
             {result.data != null && (

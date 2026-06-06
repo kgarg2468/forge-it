@@ -32,7 +32,7 @@ import { toast } from "@/lib/store";
 
 const OPTIONS: { key: string; label: string; icon: LucideIcon; default: boolean; hint: string }[] = [
   { key: "login", label: "Require login", icon: Lock, default: true, hint: "Only workspace members can access" },
-  { key: "demo", label: "Use demo data", icon: FlaskConical, default: false, hint: "Seed with sample records" },
+  { key: "records", label: "Include starter records", icon: FlaskConical, default: false, hint: "Seed with realistic records" },
   { key: "audit", label: "Enable audit logs", icon: ScrollText, default: true, hint: "Record every action" },
   { key: "approval", label: "Approval before external actions", icon: ShieldCheck, default: true, hint: "Require sign-off for outbound calls" },
 ];
@@ -100,7 +100,7 @@ export function DeployPage() {
   }
 
   const finished = stream.done && stream.ok;
-  const fakeUrl = liveUrl ?? tool.productionUrl ?? `https://${tool.slug}.up.railway.app`;
+  const displayUrl = liveUrl ?? tool.productionUrl ?? `https://${tool.slug}.up.railway.app`;
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -171,7 +171,7 @@ export function DeployPage() {
 
             <div className="mt-6 flex items-center gap-2 rounded-2xl border border-line bg-cream-100/50 px-4 py-3">
               <ExternalLink size={15} className="text-ink-faint" />
-              <span className="font-mono text-[13px] text-ink-muted">{fakeUrl}</span>
+              <span className="font-mono text-[13px] text-ink-muted">{displayUrl}</span>
             </div>
           </div>
 
@@ -242,16 +242,16 @@ export function DeployPage() {
               </p>
               <div className="mx-auto mt-6 flex max-w-md items-center gap-2 rounded-2xl border border-line bg-cream-100/60 px-4 py-3">
                 <CheckCircle2 size={16} className="text-sage-500" />
-                <span className="truncate font-mono text-[13px] text-ink-soft">{fakeUrl}</span>
+                <span className="truncate font-mono text-[13px] text-ink-soft">{displayUrl}</span>
               </div>
               <div className="mt-7 flex flex-wrap justify-center gap-3">
-                <Button onClick={() => window.open(fakeUrl, "_blank")} leftIcon={<ExternalLink size={16} />}>
+                <Button onClick={() => window.open(displayUrl, "_blank")} leftIcon={<ExternalLink size={16} />}>
                   Open tool
                 </Button>
                 <Button
                   variant="secondary"
                   onClick={() => {
-                    navigator.clipboard?.writeText(fakeUrl);
+                    navigator.clipboard?.writeText(displayUrl);
                     toast.success("Link copied");
                   }}
                   leftIcon={<Share2 size={16} />}
