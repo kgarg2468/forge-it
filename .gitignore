@@ -1,0 +1,38 @@
+node_modules/
+dist/
+build/
+.DS_Store
+*.log
+npm-debug.log*
+*.tsbuildinfo
+
+# env / secrets
+.env
+.env.local
+.env.*.local
+
+# database
+*.db
+*.db-journal
+apps/server/prisma/dev.db*
+apps/server/prisma/migrations/dev/
+
+# generated tool sandboxes (created by OpenCode at runtime)
+generated/*
+!generated/.gitkeep
+
+# opencode runtime
+.opencode/
+
+# browser/session artifacts
+.playwright-mcp/
+
+# root screenshots copied into docs/assets for README
+/forge.png
+/forge-viewport.png
+/tools-gallery.png
+
+# misc
+.context/
+coverage/
+.vite/
