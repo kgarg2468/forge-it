@@ -1,0 +1,25 @@
+{
+  "name": "forgeit",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ForgeIt — Lovable for internal tools",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,web -c magenta,cyan \"pnpm dev:server\" \"pnpm dev:web\"",
+    "dev:server": "pnpm --filter @forgeit/server dev",
+    "dev:web": "pnpm --filter @forgeit/web dev",
+    "build": "pnpm --filter @forgeit/web build",
+    "db:push": "pnpm --filter @forgeit/server db:push",
+    "db:generate": "pnpm --filter @forgeit/server db:generate",
+    "db:studio": "pnpm --filter @forgeit/server db:studio",
+    "seed": "pnpm --filter @forgeit/server seed",
+    "typecheck": "tsc -b --noEmit || true"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.7.2"
+  }
+}
