@@ -13,6 +13,10 @@
 </p>
 
 <p align="center">
+  <a href="https://forgeit.live/"><strong>Live website</strong></a>
+</p>
+
+<p align="center">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white">
   <img alt="Vite" src="https://img.shields.io/badge/Vite-React-646CFF?style=for-the-badge&logo=vite&logoColor=white">
   <img alt="MiniMax" src="https://img.shields.io/badge/MiniMax-M2.1-101014?style=for-the-badge">
@@ -173,3 +177,10 @@ ForgeIt can also use connected agent tools like Twilio and Vapi to spin up phone
 | Cognition / Devin | Engineering review session | ForgeIt can send generated plan and change context to Devin for a review focused on safety, backend usage, approval-safe actions, and missing tests. |
 | Memoir | Launch packet for generated tools | ForgeIt turns each generated tool into a product and launch brief using the same context shown in the build plan, preview, and change review flow. |
 | Limrun | Mobile QA workflow | ForgeIt routes approval-heavy operator workflows into mobile QA so teams can review how generated tools behave beyond the desktop preview. |
+
+## View
+
+| Link | URL |
+| --- | --- |
+| Live website | https://forgeit.live/ |
+| YouTube walkthrough | Coming soon |
