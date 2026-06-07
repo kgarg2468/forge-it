@@ -19,6 +19,8 @@
   <img alt="InsForge" src="https://img.shields.io/badge/InsForge-Backend-111827?style=for-the-badge">
   <img alt="Railway" src="https://img.shields.io/badge/Railway-Deploy-0B0D0E?style=for-the-badge&logo=railway&logoColor=white">
   <img alt="Vercel" src="https://img.shields.io/badge/Vercel-Frontend-000000?style=for-the-badge&logo=vercel&logoColor=white">
+  <img alt="Vapi" src="https://img.shields.io/badge/Vapi-Voice_Agents-0A0A0A?style=for-the-badge">
+  <img alt="Twilio" src="https://img.shields.io/badge/Twilio-Phone_SMS-F22F46?style=for-the-badge&logo=twilio&logoColor=white">
 </p>
 
 ## First User
@@ -49,7 +51,7 @@ ForgeIt starts where internal-tool requests usually start: a messy business work
 | Connect | Gmail, Stripe, Slack | Integration-aware build plan |
 | Model | Refund requests, customers, payments, approvals | InsForge-backed tables |
 | Build | Dashboard, queue, detail view, manager actions | Generated Vite app |
-| Review | High-risk refund and notification actions | Demo-safe approvals and audit trail |
+| Review | High-risk refund and notification actions | Approval-safe review and audit trail |
 
 ```mermaid
 flowchart LR
@@ -70,8 +72,9 @@ flowchart LR
 | Planning | MiniMax M2.1 | Structured build plans and change summaries |
 | Generation | OpenCode, sandbox runner | Creates and builds generated internal tools |
 | App backend | InsForge | Per-tool data tables for generated apps |
-| Integrations | Composio | Gmail, Slack, Stripe, and other workflow actions |
-| Sponsor hooks | Replicas, Cognition / Devin, Memoir, Limrun | Review, launch, and mobile QA workflows that extend the generated-tool lifecycle |
+| Integrations | Composio | Gmail, Slack, Stripe, and other workflow actions routed through generated tools |
+| Agent tools | Vapi, Twilio, Composio | Voice agents, phone calls, SMS, and tool actions for operator workflows |
+| Sponsor hooks | Replicas, Vapi, Cognition / Devin, Memoir, Limrun | Replicas powers the coding agent for Railway-deployed tools; voice, review, launch, and QA workflows extend the generated-tool lifecycle |
 | Deployment | Railway | Public deployment target for approved tools |
 
 ```mermaid
@@ -91,13 +94,19 @@ flowchart TD
   subgraph Runtime["Generated Tool Runtime"]
     App["Generated Vite App"]
     InsForge["InsForge Tables"]
-    Composio["Composio Actions"]
     Railway["Railway Deploy"]
+  end
+
+  subgraph AgentTooling["Agent Tooling"]
+    Composio["Composio Actions"]
+    Vapi["Vapi Voice Agents"]
+    Twilio["Twilio Phone/SMS"]
+    PhoneAgents["Phone Agents"]
   end
 
   subgraph SponsorLayer["Sponsor Integrations"]
     SponsorOrchestrator["Sponsor Orchestrator"]
-    Replicas["Replicas Background Agent"]
+    Replicas["Replicas Coding Agent"]
     Devin["Cognition / Devin Review"]
     Memoir["Memoir Launch Packet"]
     Limrun["Limrun Mobile QA"]
@@ -118,6 +127,12 @@ flowchart TD
   App --> InsForge
   App --> API
   API --> Composio
+  API --> Vapi
+  API --> Twilio
+  Composio --> PhoneAgents
+  Vapi --> PhoneAgents
+  Twilio --> PhoneAgents
+  App --> PhoneAgents
   App --> Railway
   API -->|"Tool context + build plan + preview URL + change summary"| SponsorOrchestrator
   SponsorOrchestrator --> Replicas
@@ -125,6 +140,7 @@ flowchart TD
   SponsorOrchestrator --> Memoir
   SponsorOrchestrator --> Limrun
   Replicas --> SponsorArtifacts
+  Railway -->|"deployed app context"| Replicas
   Devin --> SponsorArtifacts
   Memoir --> SponsorArtifacts
   Limrun --> SponsorArtifacts
@@ -147,14 +163,13 @@ flowchart TD
 
 ForgeIt is built around the hackathon sponsor stack: a user connects their company stack, describes the internal tool they need, ForgeIt creates the app, shows the plan, builds the backend, connects actions, and gives a clean review/approval flow. These integrations help each generated tool show what is connected, what was built, and what is safe to approve before anything goes live.
 
+ForgeIt can also use connected agent tools like Twilio and Vapi to spin up phone-heavy operator workflows, including voice agents that handle calls, collect context, and hand results back into the generated tool.
+
 | Sponsor | Integrated in ForgeIt as | What we're using it for |
 | --- | --- | --- |
 | InsForge | Backend for generated tools | ForgeIt uses InsForge to create secure backend tables for generated tools, including records like `RefundRequests`, `Customers`, and `AuditLogs`. Generated apps can read and write against those tables during preview and deployment. |
-| Replicas | Background coding-agent review | ForgeIt can hand off a generated tool or change summary to Replicas for background engineering follow-up after the first build. |
+| Replicas | Railway coding agent | Replicas powers the coding agent that reviews, updates, and follows up on generated tools after they are built and deployed on Railway. |
+| Vapi | Voice and phone-agent runtime | ForgeIt uses Vapi to create phone agents for generated operator workflows, including call handling, intake, escalation, and status updates connected back to the tool. |
 | Cognition / Devin | Engineering review session | ForgeIt can send generated plan and change context to Devin for a review focused on safety, backend usage, approval-safe actions, and missing tests. |
 | Memoir | Launch packet for generated tools | ForgeIt turns each generated tool into a product and launch brief using the same context shown in the build plan, preview, and change review flow. |
 | Limrun | Mobile QA workflow | ForgeIt routes approval-heavy operator workflows into mobile QA so teams can review how generated tools behave beyond the desktop preview. |
-
-Sponsor integration runs appear in tool activity logs so reviewers can see the review, launch, and QA steps attached to each generated internal tool.
-
-Run `pnpm check:integrations` to print redacted env presence, code evidence, and route evidence.
